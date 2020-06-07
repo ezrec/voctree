@@ -1,0 +1,32 @@
+on:
+  push:
+    tags:
+    - 'v*' # Called on push with version tags (ie v1.2.3)
+name: Go Release
+
+jobs:
+  build:
+    name: Upload Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get release information
+        id: release
+        run: |
+          echo ::set-output name=TAG::${GITHUB_REF/refs\/tags\//}
+
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
+
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
